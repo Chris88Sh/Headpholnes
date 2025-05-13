@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import csv
 
 url = "https://www.euronics.lv/audio/austinas/bezvadu-austinas?f=Cgl2aWV3c2Rlc2MwAg&p=1"
 headers = {
@@ -8,14 +9,18 @@ headers = {
 
 response = requests.get(url, headers=headers)
 
+preces = []
+
 if response.status_code == 200:
     soup = BeautifulSoup(response.content, "html.parser")
-
     product_cards = soup.select("[data-product-id]")
 
     print(f"Atrasti {len(product_cards)} produkti")
+
     for prece in product_cards:
         nosaukums = None
+        cena = None
+
         for selector in [".name", ".title", "h3", ".product-title", ".product-name"]:
             name_elem = prece.select_one(selector)
             if name_elem:
@@ -29,17 +34,26 @@ if response.status_code == 200:
                     nosaukums = text
                     break
 
-        cena = None
         for selector in [".price", ".current-price", ".product-price"]:
             price_elem = prece.select_one(selector)
             if price_elem:
                 cena = price_elem.get_text(strip=True)
                 break
 
-        if nosaukums:
-            print("Nosaukums:", nosaukums)
-        if cena:
-            print(cena)
-        print("---")
+        if nosaukums or cena:
+            produkts = {
+                "nosaukums": nosaukums if nosaukums else "Nezināms",
+                "cena": cena if cena else "Nav atrasta"
+            }
+            preces.append(produkts)
+
+    with open("preces.csv", mode="w", encoding="utf-8", newline='') as fails:
+        laukus_vardi = ["nosaukums", "cena"]
+        rakstitajs = csv.DictWriter(fails, fieldnames=laukus_vardi)
+        rakstitajs.writeheader()
+        rakstitajs.writerows(preces)
+
+    print("Dati saglabāti failā 'preces.csv'.")
 else:
     print("Kļūda ielādējot lapu. Statusa kods:", response.status_code)
+
