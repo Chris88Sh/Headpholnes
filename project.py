@@ -1,3 +1,4 @@
+## Noslēguma projekts, Kristīne Šaicāne 13.grupa 241RDB232
 import requests
 from bs4 import BeautifulSoup
 import csv
@@ -14,8 +15,6 @@ preces = []
 if response.status_code == 200:
     soup = BeautifulSoup(response.content, "html.parser")
     product_cards = soup.select("[data-product-id]")
-
-    print(f"Atrasti {len(product_cards)} produkti")
 
     for prece in product_cards:
         nosaukums = None
